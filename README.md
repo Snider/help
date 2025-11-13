@@ -1,6 +1,6 @@
 # Help Module
 
-This repository contains the `help` module, which was formerly part of the `Snider/Core` framework. This module provides assistance and documentation functionality.
+This repository contains the `help` module, which provides assistance and documentation functionality for Wails applications.
 
 ## Getting Started
 
