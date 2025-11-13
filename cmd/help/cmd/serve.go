@@ -17,7 +17,7 @@ var serveCmd = &cobra.Command{
 			fmt.Fprintf(w, "Hello, world!")
 		})
 
-		fs := http.FileServer(http.Dir("./ui/dist/core-element-template/browser"))
+		fs := http.FileServer(http.Dir("./ui/dist/help/browser"))
 		http.Handle("/", fs)
 
 		log.Println("Listening on :8080...")

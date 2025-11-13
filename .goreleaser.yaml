@@ -31,13 +31,13 @@ changelog:
       - '^docs:'
       - '^test:'
 brews:
-  - name: core-element-template
+  - name: help
     tap:
-      owner: your-username
+      owner: Snider
       name: homebrew-tap
     commit_author:
       name: goreleaserbot
       email: goreleaser@carlosbecker.com
-    homepage: "https://github.com/your-username/core-element-template"
-    description: "A demo CLI for the core-element-template"
+    homepage: "https://github.com/Snider/help"
+    description: "Help module for the core framework"
     license: "EUPL-1.2"
