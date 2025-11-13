@@ -7,37 +7,60 @@ import (
 	"github.com/Snider/help" // Assuming this is the import path for the help module
 )
 
-// This example demonstrates how to use the ShowAt() function.
-//
-// To run this example, you would typically have a Wails application
-// where the 'help' service is registered. This code simulates that
-// environment for illustrative purposes.
+// MockLogger is a mock implementation of the help.Logger interface.
+type MockLogger struct{}
+
+func (m *MockLogger) Info(message string, args ...any)  { fmt.Println("INFO:", message) }
+func (m *MockLogger) Error(message string, args ...any) { fmt.Println("ERROR:", message) }
+
+// MockApp is a mock implementation of the help.App interface.
+type MockApp struct {
+	logger help.Logger
+}
+
+func (m *MockApp) Logger() help.Logger { return m.logger }
+
+// MockCore is a mock implementation of the help.Core interface.
+type MockCore struct {
+	app help.App
+}
+
+func (m *MockCore) ACTION(msg map[string]any) error {
+	fmt.Printf("ACTION called with: %v\n", msg)
+	return nil
+}
+
+func (m *MockCore) App() help.App { return m.app }
+
+// MockDisplay is a mock implementation of the help.Display interface.
+type MockDisplay struct{}
+
+// This example demonstrates how to use the ShowAt() function in the refactored help module.
 func main() {
 	// 1. Initialize the help service.
-	// In a real Wails application, this would be handled by the
-	// dependency injection system.
 	helpService, err := help.New()
 	if err != nil {
 		log.Fatalf("Failed to create help service: %v", err)
 	}
 
-	// 2. Define the anchor for the help section.
-	// This anchor corresponds to a specific section in your documentation.
+	// 2. Create mock implementations of the required interfaces.
+	mockLogger := &MockLogger{}
+	mockApp := &MockApp{logger: mockLogger}
+	mockCore := &MockCore{app: mockApp}
+	mockDisplay := &MockDisplay{}
+
+	// 3. Initialize the help service with the mock dependencies.
+	helpService.Init(mockCore, mockDisplay)
+
+	// 4. Define the anchor for the help section.
 	const helpAnchor = "getting-started"
 	fmt.Printf("Simulating a call to helpService.ShowAt(%q)\n", helpAnchor)
 
-	// 3. Call the ShowAt() method.
-	// This would open the help window and navigate to the specified anchor.
-	// Since this is a command-line example, we can't actually show a window.
-	// We'll just print a message to simulate the action.
-	//
-	// In a real application, the call would look like this:
-	//
-	// err = helpService.ShowAt(helpAnchor)
-	// if err != nil {
-	//     log.Fatalf("Failed to show help window at anchor %s: %v", helpAnchor, err)
-	// }
-	//
-	// For this example, we'll just print a success message.
-	fmt.Printf("Successfully called helpService.ShowAt(%q). In a real app, the help window would now be visible at the '%s' section.\n", helpAnchor, helpAnchor)
+	// 5. Call the ShowAt() method.
+	err = helpService.ShowAt(helpAnchor)
+	if err != nil {
+		log.Fatalf("Failed to show help window at anchor %s: %v", helpAnchor, err)
+	}
+
+	fmt.Printf("Successfully called helpService.ShowAt(%q).\n", helpAnchor)
 }

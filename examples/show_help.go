@@ -7,38 +7,57 @@ import (
 	"github.com/Snider/help" // Assuming this is the import path for the help module
 )
 
-// This example demonstrates how to use the Show() function.
-//
-// To run this example, you would typically have a Wails application
-// where the 'help' service is registered. This code simulates that
-// environment for illustrative purposes.
+// MockLogger is a mock implementation of the help.Logger interface.
+type MockLogger struct{}
+
+func (m *MockLogger) Info(message string, args ...any)  { fmt.Println("INFO:", message) }
+func (m *MockLogger) Error(message string, args ...any) { fmt.Println("ERROR:", message) }
+
+// MockApp is a mock implementation of the help.App interface.
+type MockApp struct {
+	logger help.Logger
+}
+
+func (m *MockApp) Logger() help.Logger { return m.logger }
+
+// MockCore is a mock implementation of the help.Core interface.
+type MockCore struct {
+	app help.App
+}
+
+func (m *MockCore) ACTION(msg map[string]any) error {
+	fmt.Printf("ACTION called with: %v\n", msg)
+	return nil
+}
+
+func (m *MockCore) App() help.App { return m.app }
+
+// MockDisplay is a mock implementation of the help.Display interface.
+type MockDisplay struct{}
+
+// This example demonstrates how to use the Show() function in the refactored help module.
 func main() {
 	// 1. Initialize the help service.
-	// In a real Wails application, this would be handled by the
-	// dependency injection system.
 	helpService, err := help.New()
 	if err != nil {
 		log.Fatalf("Failed to create help service: %v", err)
 	}
 
-	// 2. Simulate the core runtime and dependencies.
-	// The help service depends on a 'core.Runtime' and other services
-	// like 'display'. In a real app, these are provided by the Wails framework.
-	// For this example, we'll acknowledge that these are needed but not fully implement them.
+	// 2. Create mock implementations of the required interfaces.
+	mockLogger := &MockLogger{}
+	mockApp := &MockApp{logger: mockLogger}
+	mockCore := &MockCore{app: mockApp}
+	mockDisplay := &MockDisplay{}
+
+	// 3. Initialize the help service with the mock dependencies.
+	helpService.Init(mockCore, mockDisplay)
 	fmt.Println("Simulating a call to helpService.Show()")
 
-	// 3. Call the Show() method.
-	// This would open the help window in a graphical environment.
-	// Since this is a command-line example, we can't actually show a window.
-	// We'll just print a message to simulate the action.
-	//
-	// In a real application, the call would look like this:
-	//
-	// err = helpService.Show()
-	// if err != nil {
-	//     log.Fatalf("Failed to show help window: %v", err)
-	// }
-	//
-	// For this example, we'll just print a success message.
-	fmt.Println("Successfully called helpService.Show(). In a real app, the help window would now be visible.")
+	// 4. Call the Show() method.
+	err = helpService.Show()
+	if err != nil {
+		log.Fatalf("Failed to show help window: %v", err)
+	}
+
+	fmt.Println("Successfully called helpService.Show().")
 }

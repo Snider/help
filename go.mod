@@ -3,7 +3,6 @@ module github.com/Snider/help
 go 1.25
 
 require (
-	github.com/Snider/Core v0.0.0-20251113184746-4133ead866d1
 	github.com/spf13/cobra v1.10.1
 	github.com/stretchr/testify v1.11.1
 	github.com/wailsapp/wails/v3 v3.0.0-alpha.40
