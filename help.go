@@ -4,8 +4,6 @@ import (
 	"context"
 	"embed"
 	"fmt"
-
-	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 //go:embed all:public/*
@@ -37,7 +35,7 @@ type Display interface{}
 type Help interface {
 	Show() error
 	ShowAt(anchor string) error
-	ServiceStartup(ctx context.Context, options application.ServiceOptions) error
+	ServiceStartup(ctx context.Context) error
 }
 
 // Options holds configuration for the help service.
@@ -64,7 +62,7 @@ func (s *Service) Init(c Core, d Display) {
 }
 
 // ServiceStartup is called when the app starts, after dependencies are injected.
-func (s *Service) ServiceStartup(context.Context, application.ServiceOptions) error {
+func (s *Service) ServiceStartup(context.Context) error {
 	if s.core == nil {
 		return fmt.Errorf("core runtime not initialized")
 	}

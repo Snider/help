@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 // MockLogger is a mock implementation of the Logger interface.
@@ -64,7 +63,7 @@ func TestNew(t *testing.T) {
 
 func TestServiceStartup(t *testing.T) {
 	s, _, _ := setupService(t)
-	err := s.ServiceStartup(context.Background(), application.ServiceOptions{})
+	err := s.ServiceStartup(context.Background())
 	assert.NoError(t, err)
 }
 
@@ -94,4 +93,44 @@ func TestShowAt(t *testing.T) {
 	opts, ok := msg["options"].(map[string]any)
 	assert.True(t, ok)
 	assert.Equal(t, "/#test-anchor", opts["URL"])
+}
+
+func TestServiceStartup_CoreNotInitialized(t *testing.T) {
+	s, _, _ := setupService(t)
+	s.core = nil
+	err := s.ServiceStartup(context.Background())
+	assert.Error(t, err)
+	assert.Equal(t, "core runtime not initialized", err.Error())
+}
+
+func TestShow_DisplayNotInitialized(t *testing.T) {
+	s, _, _ := setupService(t)
+	s.display = nil
+	err := s.Show()
+	assert.Error(t, err)
+	assert.Equal(t, "display service not initialized", err.Error())
+}
+
+func TestShow_CoreNotInitialized(t *testing.T) {
+	s, _, _ := setupService(t)
+	s.core = nil
+	err := s.Show()
+	assert.Error(t, err)
+	assert.Equal(t, "core runtime not initialized", err.Error())
+}
+
+func TestShowAt_DisplayNotInitialized(t *testing.T) {
+	s, _, _ := setupService(t)
+	s.display = nil
+	err := s.ShowAt("some-anchor")
+	assert.Error(t, err)
+	assert.Equal(t, "display service not initialized", err.Error())
+}
+
+func TestShowAt_CoreNotInitialized(t *testing.T) {
+	s, _, _ := setupService(t)
+	s.core = nil
+	err := s.ShowAt("some-anchor")
+	assert.Error(t, err)
+	assert.Equal(t, "core runtime not initialized", err.Error())
 }
