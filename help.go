@@ -5,7 +5,7 @@ import (
 	"embed"
 	"fmt"
 
-	"github.com/Snider/Core/pkg/core"
+	"github.com/Snider/Core"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
@@ -17,7 +17,7 @@ type Options struct{}
 
 // Service manages the in-app help system.
 type Service struct {
-	*core.Runtime[Options]
+	core    *core.Core
 	config  core.Config
 	display core.Display
 	assets  embed.FS
@@ -49,7 +49,7 @@ func Register(c *core.Core) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	s.Runtime = core.NewRuntime(c, Options{})
+	s.core = c
 	return s, nil
 }
 
@@ -66,7 +66,7 @@ func (s *Service) HandleIPCEvents(c *core.Core, msg core.Message) error {
 
 // ServiceStartup is called when the app starts, after dependencies are injected.
 func (s *Service) ServiceStartup(context.Context, application.ServiceOptions) error {
-	s.Core().App.Logger.Info("Help service started")
+	s.core.App.Logger.Info("Help service started")
 	return nil
 }
 
@@ -75,7 +75,7 @@ func (s *Service) Show() error {
 	if s.display == nil {
 		return fmt.Errorf("display service not initialized")
 	}
-	if s.Core() == nil {
+	if s.core == nil {
 		return fmt.Errorf("core runtime not initialized")
 	}
 	msg := map[string]any{
@@ -88,7 +88,7 @@ func (s *Service) Show() error {
 		},
 	}
 
-	return s.Core().ACTION(msg)
+	return s.core.ACTION(msg)
 }
 
 // ShowAt displays a specific section of the help documentation.
@@ -96,7 +96,7 @@ func (s *Service) ShowAt(anchor string) error {
 	if s.display == nil {
 		return fmt.Errorf("display service not initialized")
 	}
-	if s.Core() == nil {
+	if s.core == nil {
 		return fmt.Errorf("core runtime not initialized")
 	}
 	msg := map[string]any{
@@ -109,7 +109,7 @@ func (s *Service) ShowAt(anchor string) error {
 			"URL":    fmt.Sprintf("/#%s", anchor),
 		},
 	}
-	return s.Core().ACTION(msg)
+	return s.core.ACTION(msg)
 }
 
 // Ensure Service implements the core.Help interface.

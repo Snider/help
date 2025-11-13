@@ -3,7 +3,7 @@ package help
 import (
 	"testing"
 
-	"github.com/Snider/Core/pkg/core"
+	"github.com/Snider/Core"
 	"github.com/stretchr/testify/assert"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -51,7 +51,7 @@ func setupService(t *testing.T) (*Service, *MockCore, *MockDisplay) {
 	mockCore := &MockCore{Core: c}
 	mockDisplay := &MockDisplay{}
 
-	s.Runtime = core.NewRuntime(c, Options{})
+	s.core = c
 	s.display = mockDisplay
 	// Register our mock handler. When the real s.Core().ACTION is called,
 	// our mock handler will be executed.
@@ -64,6 +64,21 @@ func TestNew(t *testing.T) {
 	s, err := New()
 	assert.NoError(t, err)
 	assert.NotNil(t, s)
+}
+
+func TestRegister(t *testing.T) {
+	app := application.New(application.Options{})
+	c, err := core.New(core.WithWails(app))
+	assert.NoError(t, err)
+
+	s, err := Register(c)
+	assert.NoError(t, err)
+	assert.NotNil(t, s)
+
+	service, ok := s.(*Service)
+	assert.True(t, ok)
+	assert.NotNil(t, service.core)
+	assert.Equal(t, c, service.core)
 }
 
 func TestShow(t *testing.T) {
@@ -98,6 +113,65 @@ func TestShowAt(t *testing.T) {
 
 func TestHandleIPCEvents_ServiceStartup(t *testing.T) {
 	s, _, _ := setupService(t)
-	err := s.HandleIPCEvents(s.Core(), core.ActionServiceStartup{})
+	err := s.HandleIPCEvents(s.core, core.ActionServiceStartup{})
 	assert.NoError(t, err)
+}
+
+func TestHandleIPCEvents_Default(t *testing.T) {
+	s, _, _ := setupService(t)
+
+	// Define a custom message type that is not handled by HandleIPCEvents.
+	type unhandledMessage struct{}
+	err := s.HandleIPCEvents(s.core, unhandledMessage{})
+	assert.NoError(t, err)
+}
+
+func TestShow_Errors(t *testing.T) {
+	t.Run("NoDisplay", func(t *testing.T) {
+		s, err := New()
+		assert.NoError(t, err)
+		app := application.New(application.Options{})
+		c, err := core.New(core.WithWails(app))
+		assert.NoError(t, err)
+		s.core = c
+
+		err = s.Show()
+		assert.Error(t, err)
+		assert.Equal(t, "display service not initialized", err.Error())
+	})
+
+	t.Run("NoCore", func(t *testing.T) {
+		s, err := New()
+		assert.NoError(t, err)
+		s.display = &MockDisplay{}
+
+		err = s.Show()
+		assert.Error(t, err)
+		assert.Equal(t, "core runtime not initialized", err.Error())
+	})
+}
+
+func TestShowAt_Errors(t *testing.T) {
+	t.Run("NoDisplay", func(t *testing.T) {
+		s, err := New()
+		assert.NoError(t, err)
+		app := application.New(application.Options{})
+		c, err := core.New(core.WithWails(app))
+		assert.NoError(t, err)
+		s.core = c
+
+		err = s.ShowAt("some-anchor")
+		assert.Error(t, err)
+		assert.Equal(t, "display service not initialized", err.Error())
+	})
+
+	t.Run("NoCore", func(t *testing.T) {
+		s, err := New()
+		assert.NoError(t, err)
+		s.display = &MockDisplay{}
+
+		err = s.ShowAt("some-anchor")
+		assert.Error(t, err)
+		assert.Equal(t, "core runtime not initialized", err.Error())
+	})
 }
