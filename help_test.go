@@ -28,12 +28,13 @@ type MockCore struct {
 	ActionCalled bool
 	ActionMsg    map[string]any
 	app          App
+	ActionErr    error
 }
 
 func (m *MockCore) ACTION(msg map[string]any) error {
 	m.ActionCalled = true
 	m.ActionMsg = msg
-	return nil
+	return m.ActionErr
 }
 
 func (m *MockCore) App() App { return m.app }
@@ -101,6 +102,77 @@ func TestServiceStartup_CoreNotInitialized(t *testing.T) {
 	err := s.ServiceStartup(context.Background())
 	assert.Error(t, err)
 	assert.Equal(t, "core runtime not initialized", err.Error())
+}
+
+func TestGood_ShowAndShowAt_DispatchesCorrectPayload(t *testing.T) {
+	s, mockCore, _ := setupService(t)
+
+	// Test Show()
+	err := s.Show()
+	assert.NoError(t, err)
+	assert.True(t, mockCore.ActionCalled)
+
+	expectedMsgShow := map[string]any{
+		"action": "display.open_window",
+		"name":   "help",
+		"options": map[string]any{
+			"Title":  "Help",
+			"Width":  800,
+			"Height": 600,
+		},
+	}
+	assert.Equal(t, expectedMsgShow, mockCore.ActionMsg)
+
+	// Reset mock and test ShowAt()
+	mockCore.ActionCalled = false
+	mockCore.ActionMsg = nil
+
+	err = s.ShowAt("good-anchor")
+	assert.NoError(t, err)
+	assert.True(t, mockCore.ActionCalled)
+
+	expectedMsgShowAt := map[string]any{
+		"action": "display.open_window",
+		"name":   "help",
+		"options": map[string]any{
+			"Title":  "Help",
+			"Width":  800,
+			"Height": 600,
+			"URL":    "/#good-anchor",
+		},
+	}
+	assert.Equal(t, expectedMsgShowAt, mockCore.ActionMsg)
+}
+
+func TestBad_ShowAt_EmptyAnchor(t *testing.T) {
+	s, mockCore, _ := setupService(t)
+
+	err := s.ShowAt("")
+	assert.NoError(t, err)
+	assert.True(t, mockCore.ActionCalled)
+
+	msg := mockCore.ActionMsg
+	opts, ok := msg["options"].(map[string]any)
+	assert.True(t, ok)
+	assert.Equal(t, "/#", opts["URL"])
+}
+
+func TestUgly_ActionError_Propagates(t *testing.T) {
+	s, mockCore, _ := setupService(t)
+
+	// Simulate an error from the core.ACTION method
+	expectedErr := assert.AnError
+	mockCore.ActionErr = expectedErr
+
+	// Test Show()
+	err := s.Show()
+	assert.Error(t, err)
+	assert.Equal(t, expectedErr, err)
+
+	// Test ShowAt()
+	err = s.ShowAt("any-anchor")
+	assert.Error(t, err)
+	assert.Equal(t, expectedErr, err)
 }
 
 func TestShow_DisplayNotInitialized(t *testing.T) {
