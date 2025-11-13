@@ -3,7 +3,7 @@ site_url: ""
 repo_url: ""
 edit_uri: ""
 docs_dir: src
-copyright: Core &copy; EUPL-1.2 &mdash; 2024 to &infin; and beyond
+copyright: Help &copy; EUPL-1.2 &mdash; 2024 to &infin; and beyond
 
 theme:
   name: material
@@ -51,8 +51,6 @@ theme:
 extra:
   generator: false
   social:
-    - icon: fontawesome/brands/github
-      link: https://github.com/Snider/Core
     - icon: fontawesome/solid/globe
       link: https://dappco.re
 
