@@ -1,23 +1,10 @@
 ---
-title: Core.Help
+title: Help
 ---
 
 # Overview
 
-Core is an opinionated framework for building Go desktop apps with Wails, providing a small set of focused modules you can mix into your app. It ships with sensible defaults and a demo app that doubles as in‑app help.
-
-- Site: [https://dappco.re](https://dappco.re)
-- Repo: [https://github.com/Snider/Core](https://github.com/Snider/Core)
-
-## Modules
-
-- Core — framework bootstrap and service container
-- Core.Config — app and UI state persistence
-- Core.Crypt — keys, encrypt/decrypt, sign/verify
-- Core.Display — windows, tray, window state
-- Core.Help — in‑app help and deep‑links
-- Core.IO — local/remote filesystem helpers
-- Core.Workspace — projects and paths
+This module provides an in-app help system for Wails applications, including a simple way to display documentation and handle deep-links to specific sections.
 
 ## Quick start
 ```go
@@ -25,54 +12,40 @@ package main
 
 import (
     "github.com/wailsapp/wails/v3/pkg/application"
-    core "github.com/Snider/Core"
+    "github.com/snider/help"
 )
 
 func main() {
-    app := core.New(
-        core.WithServiceLock(),
-    )
-    wailsApp := application.NewWithOptions(&application.Options{
-        Bind: []interface{}{app},
+    app := application.New(application.Options{})
+    helpService, _ := help.Register(app)
+
+    wailsApp := application.New(application.Options{
+        Services: []application.Service{
+            application.NewService(helpService),
+        },
     })
     wailsApp.Run()
 }
 ```
 
-## Services
+## Usage
 ```go
-package demo
+package main
 
 import (
-    core "github.com/Snider/Core"
-)
-
-// Register your service
-func Register(c *core.Core) error {
-    return c.RegisterService("demo", &Demo{core: c})
-}
-```
-
-## Display example
-```go
-package display
-
-import (
-    "context"
     "github.com/wailsapp/wails/v3/pkg/application"
+    "github.com/snider/help"
 )
 
-// Open a window on startup
-func (d *API) ServiceStartup(ctx context.Context, _ application.ServiceOptions) error {
-    d.OpenWindow(
-        OptName("main"),
-        OptHeight(900),
-        OptWidth(1280),
-        OptURL("/"),
-        OptTitle("Core"),
-    )
-    return nil
+type MyService struct {
+    help help.Service
+}
+
+func (s *MyService) ShowHelp() {
+    s.help.Show()
+}
+
+func (s *MyService) ShowHelpAt(anchor string) {
+    s.help.ShowAt(anchor)
 }
 ```
-
-See the left nav for detailed pages on each module.
