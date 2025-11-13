@@ -1,17 +1,19 @@
-# Core Element Template
+# Help
 
-This repository is a template for developers to create custom HTML elements for the core web3 framework. It includes a Go backend, an Angular custom element, and a full release cycle configuration.
+Help; a module of the core framework.
+
+This repository provides assistance and documentation functionality for the core web3 framework. It includes a Go backend, an Angular custom element, and a full release cycle configuration.
 
 ## Getting Started
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/your-username/core-element-template.git
+    git clone https://github.com/Snider/help.git
     ```
 
 2.  **Install the dependencies:**
     ```bash
-    cd core-element-template
+    cd help
     go mod tidy
     cd ui
     npm install
@@ -19,7 +21,7 @@ This repository is a template for developers to create custom HTML elements for 
 
 3.  **Run the development server:**
     ```bash
-    go run ./cmd/demo-cli serve
+    go run ./cmd/help serve
     ```
     This will start the Go backend and serve the Angular custom element.
 

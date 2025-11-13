@@ -16,7 +16,7 @@ import { App } from './app';
 export class AppModule implements DoBootstrap {
   constructor(private injector: Injector) {
     const el = createCustomElement(App, { injector });
-    customElements.define('core-element-template', el);
+    customElements.define('help-element', el);
   }
 
   ngDoBootstrap() {}

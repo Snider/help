@@ -8,11 +8,11 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "demo-cli",
-	Short: "A demo CLI for the core-element-template",
-	Long:  `A longer description that spans multiple lines and likely contains examples and usage of using your application.`,
+	Use:   "help",
+	Short: "Help module for the core framework",
+	Long:  `Help is a module of the core framework that provides assistance and documentation functionality.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Hello from the demo CLI!")
+		fmt.Println("Hello from the help module!")
 	},
 }
 
