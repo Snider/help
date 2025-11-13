@@ -3,7 +3,7 @@ package help
 import (
 	"testing"
 
-	"github.com/Snider/Core/pkg/core"
+	"github.com/Snider/Core"
 	"github.com/stretchr/testify/assert"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )

@@ -5,7 +5,7 @@ import (
 	"embed"
 	"fmt"
 
-	"github.com/Snider/Core/pkg/core"
+	"github.com/Snider/Core"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
