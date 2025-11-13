@@ -1,61 +1,56 @@
 package help
 
 import (
+	"context"
 	"testing"
 
-	"github.com/Snider/Core/pkg/core"
 	"github.com/stretchr/testify/assert"
-	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
-// MockDisplay is a mock implementation of the core.Display interface.
-type MockDisplay struct {
-	ShowCalled bool
+// MockLogger is a mock implementation of the Logger interface.
+type MockLogger struct {
+	InfoCalled  bool
+	ErrorCalled bool
 }
 
-func (m *MockDisplay) Show() error {
-	m.ShowCalled = true
-	return nil
+func (m *MockLogger) Info(message string, args ...any)  { m.InfoCalled = true }
+func (m *MockLogger) Error(message string, args ...any) { m.ErrorCalled = true }
+
+// MockApp is a mock implementation of the App interface.
+type MockApp struct {
+	logger Logger
 }
 
-func (m *MockDisplay) ShowAt(anchor string) error {
-	m.ShowCalled = true
-	return nil
-}
+func (m *MockApp) Logger() Logger { return m.logger }
 
-func (m *MockDisplay) Hide() error                                { return nil }
-func (m *MockDisplay) HideAt(anchor string) error                 { return nil }
-func (m *MockDisplay) OpenWindow(opts ...core.WindowOption) error { return nil }
-
-// MockCore is a mock implementation of the *core.Core type.
+// MockCore is a mock implementation of the Core interface.
 type MockCore struct {
-	Core         *core.Core
 	ActionCalled bool
-	ActionMsg    core.Message
+	ActionMsg    map[string]any
+	app          App
 }
 
-// ACTION matches the signature required by RegisterAction.
-func (m *MockCore) ACTION(c *core.Core, msg core.Message) error {
+func (m *MockCore) ACTION(msg map[string]any) error {
 	m.ActionCalled = true
 	m.ActionMsg = msg
 	return nil
 }
 
+func (m *MockCore) App() App { return m.app }
+
+// MockDisplay is a mock implementation of the Display interface.
+type MockDisplay struct{}
+
 func setupService(t *testing.T) (*Service, *MockCore, *MockDisplay) {
 	s, err := New()
 	assert.NoError(t, err)
 
-	app := application.New(application.Options{})
-	c, err := core.New(core.WithWails(app))
-	assert.NoError(t, err)
-	mockCore := &MockCore{Core: c}
+	mockLogger := &MockLogger{}
+	mockApp := &MockApp{logger: mockLogger}
+	mockCore := &MockCore{app: mockApp}
 	mockDisplay := &MockDisplay{}
 
-	s.Runtime = core.NewRuntime(c, Options{})
-	s.display = mockDisplay
-	// Register our mock handler. When the real s.Core().ACTION is called,
-	// our mock handler will be executed.
-	c.RegisterAction(mockCore.ACTION)
+	s.Init(mockCore, mockDisplay)
 
 	return s, mockCore, mockDisplay
 }
@@ -66,6 +61,12 @@ func TestNew(t *testing.T) {
 	assert.NotNil(t, s)
 }
 
+func TestServiceStartup(t *testing.T) {
+	s, _, _ := setupService(t)
+	err := s.ServiceStartup(context.Background())
+	assert.NoError(t, err)
+}
+
 func TestShow(t *testing.T) {
 	s, mockCore, _ := setupService(t)
 
@@ -73,8 +74,7 @@ func TestShow(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, mockCore.ActionCalled)
 
-	msg, ok := mockCore.ActionMsg.(map[string]any)
-	assert.True(t, ok)
+	msg := mockCore.ActionMsg
 	assert.Equal(t, "display.open_window", msg["action"])
 	assert.Equal(t, "help", msg["name"])
 }
@@ -86,8 +86,7 @@ func TestShowAt(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, mockCore.ActionCalled)
 
-	msg, ok := mockCore.ActionMsg.(map[string]any)
-	assert.True(t, ok)
+	msg := mockCore.ActionMsg
 	assert.Equal(t, "display.open_window", msg["action"])
 	assert.Equal(t, "help", msg["name"])
 
@@ -96,8 +95,42 @@ func TestShowAt(t *testing.T) {
 	assert.Equal(t, "/#test-anchor", opts["URL"])
 }
 
-func TestHandleIPCEvents_ServiceStartup(t *testing.T) {
+func TestServiceStartup_CoreNotInitialized(t *testing.T) {
 	s, _, _ := setupService(t)
-	err := s.HandleIPCEvents(s.Core(), core.ActionServiceStartup{})
-	assert.NoError(t, err)
+	s.core = nil
+	err := s.ServiceStartup(context.Background())
+	assert.Error(t, err)
+	assert.Equal(t, "core runtime not initialized", err.Error())
+}
+
+func TestShow_DisplayNotInitialized(t *testing.T) {
+	s, _, _ := setupService(t)
+	s.display = nil
+	err := s.Show()
+	assert.Error(t, err)
+	assert.Equal(t, "display service not initialized", err.Error())
+}
+
+func TestShow_CoreNotInitialized(t *testing.T) {
+	s, _, _ := setupService(t)
+	s.core = nil
+	err := s.Show()
+	assert.Error(t, err)
+	assert.Equal(t, "core runtime not initialized", err.Error())
+}
+
+func TestShowAt_DisplayNotInitialized(t *testing.T) {
+	s, _, _ := setupService(t)
+	s.display = nil
+	err := s.ShowAt("some-anchor")
+	assert.Error(t, err)
+	assert.Equal(t, "display service not initialized", err.Error())
+}
+
+func TestShowAt_CoreNotInitialized(t *testing.T) {
+	s, _, _ := setupService(t)
+	s.core = nil
+	err := s.ShowAt("some-anchor")
+	assert.Error(t, err)
+	assert.Equal(t, "core runtime not initialized", err.Error())
 }
