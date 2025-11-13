@@ -52,7 +52,7 @@ func setupService(t *testing.T) (*Service, *MockCore, *MockDisplay) {
 
 	s.Init(mockCore, mockDisplay)
 
-	return s, mockRuntime, mockDisplay, mockLogHandler
+	return s, mockCore, mockDisplay
 }
 
 func TestNew(t *testing.T) {
@@ -68,11 +68,11 @@ func TestServiceStartup(t *testing.T) {
 }
 
 func TestShow(t *testing.T) {
-	s, mockRuntime, _, _ := setupService(t)
+	s, mockCore, _ := setupService(t)
 
 	err := s.Show()
 	assert.NoError(t, err)
-	assert.True(t, mockRuntime.ActionCalled)
+	assert.True(t, mockCore.ActionCalled)
 
 	msg := mockCore.ActionMsg
 	assert.Equal(t, "display.open_window", msg["action"])
@@ -80,11 +80,11 @@ func TestShow(t *testing.T) {
 }
 
 func TestShowAt(t *testing.T) {
-	s, mockRuntime, _, _ := setupService(t)
+	s, mockCore, _ := setupService(t)
 
 	err := s.ShowAt("test-anchor")
 	assert.NoError(t, err)
-	assert.True(t, mockRuntime.ActionCalled)
+	assert.True(t, mockCore.ActionCalled)
 
 	msg := mockCore.ActionMsg
 	assert.Equal(t, "display.open_window", msg["action"])
