@@ -1,6 +1,8 @@
 package help
 
 import (
+	"context"
+	"log/slog"
 	"testing"
 
 	"github.com/Snider/Core"
@@ -27,6 +29,34 @@ func (m *MockDisplay) Hide() error                                { return nil }
 func (m *MockDisplay) HideAt(anchor string) error                 { return nil }
 func (m *MockDisplay) OpenWindow(opts ...core.WindowOption) error { return nil }
 
+// MockLogHandler is a mock implementation of the slog.Handler interface.
+type MockLogHandler struct {
+	InfoCalled  bool
+	ErrorCalled bool
+}
+
+func (h *MockLogHandler) Enabled(context.Context, slog.Level) bool {
+	return true
+}
+
+func (h *MockLogHandler) Handle(ctx context.Context, r slog.Record) error {
+	if r.Level == slog.LevelInfo {
+		h.InfoCalled = true
+	}
+	if r.Level == slog.LevelError {
+		h.ErrorCalled = true
+	}
+	return nil
+}
+
+func (h *MockLogHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
+	return h
+}
+
+func (h *MockLogHandler) WithGroup(name string) slog.Handler {
+	return h
+}
+
 // MockRuntime is a mock implementation of the *core.Core type.
 type MockRuntime struct {
 	Runtime      *core.Core
@@ -41,13 +71,18 @@ func (m *MockRuntime) ACTION(r *core.Core, msg core.Message) error {
 	return nil
 }
 
-func setupService(t *testing.T) (*Service, *MockRuntime, *MockDisplay) {
+func setupService(t *testing.T) (*Service, *MockRuntime, *MockDisplay, *MockLogHandler) {
 	s, err := New()
 	assert.NoError(t, err)
 
 	app := application.New(application.Options{})
 	r, err := core.New(core.WithWails(app))
 	assert.NoError(t, err)
+
+	mockLogHandler := &MockLogHandler{}
+	slogLogger := slog.New(mockLogHandler)
+	r.App.Logger = slogLogger
+
 	mockRuntime := &MockRuntime{Runtime: r}
 	mockDisplay := &MockDisplay{}
 
@@ -57,7 +92,7 @@ func setupService(t *testing.T) (*Service, *MockRuntime, *MockDisplay) {
 	// our mock handler will be executed.
 	r.RegisterAction(mockRuntime.ACTION)
 
-	return s, mockRuntime, mockDisplay
+	return s, mockRuntime, mockDisplay, mockLogHandler
 }
 
 func TestNew(t *testing.T) {
@@ -82,7 +117,7 @@ func TestRegister(t *testing.T) {
 }
 
 func TestShow(t *testing.T) {
-	s, mockRuntime, _ := setupService(t)
+	s, mockRuntime, _, _ := setupService(t)
 
 	err := s.Show()
 	assert.NoError(t, err)
@@ -95,7 +130,7 @@ func TestShow(t *testing.T) {
 }
 
 func TestShowAt(t *testing.T) {
-	s, mockRuntime, _ := setupService(t)
+	s, mockRuntime, _, _ := setupService(t)
 
 	err := s.ShowAt("test-anchor")
 	assert.NoError(t, err)
@@ -112,18 +147,27 @@ func TestShowAt(t *testing.T) {
 }
 
 func TestHandleIPCEvents_ServiceStartup(t *testing.T) {
-	s, _, _ := setupService(t)
+	s, _, _, _ := setupService(t)
 	err := s.HandleIPCEvents(s.runtime, core.ActionServiceStartup{})
 	assert.NoError(t, err)
 }
 
+func TestServiceStartup(t *testing.T) {
+	s, _, _, mockLogger := setupService(t)
+
+	err := s.ServiceStartup(nil, application.ServiceOptions{})
+	assert.NoError(t, err)
+	assert.True(t, mockLogger.InfoCalled)
+}
+
 func TestHandleIPCEvents_Default(t *testing.T) {
-	s, _, _ := setupService(t)
+	s, _, _, mockLogger := setupService(t)
 
 	// Define a custom message type that is not handled by HandleIPCEvents.
 	type unhandledMessage struct{}
 	err := s.HandleIPCEvents(s.runtime, unhandledMessage{})
 	assert.NoError(t, err)
+	assert.True(t, mockLogger.ErrorCalled)
 }
 
 func TestShow_Errors(t *testing.T) {
