@@ -70,3 +70,23 @@ if err != nil {
 ```
 
 Once the help service is initialized, you can use the `Show()` and `ShowAt()` methods to display the documentation.
+
+### Displaying Help
+
+The `Show()` method opens the help window to the main page.
+
+```go
+err := helpService.Show()
+if err != nil {
+    // Handle error
+}
+```
+
+The `ShowAt()` method opens the help window to a specific anchor. The provided anchor is normalized into a URL. For example, calling `ShowAt("ui/how/settings#resetPassword")` will open the help window to a URL similar to `http://localhost:8080/docs/ui/how/settings/index.html#resetPassword`. The exact URL depends on how your display service resolves these paths.
+
+```go
+err := helpService.ShowAt("ui/how/settings#resetPassword")
+if err != nil {
+    // Handle error
+}
+```
