@@ -21,3 +21,39 @@ This project uses `mkdocs-material` to build the documentation. To get started, 
    ```bash
    mkdocs serve
    ```
+
+## Usage
+
+To use the `help` module, you first need to import it in your Go project:
+
+```go
+import "github.com/Snider/help"
+```
+
+Next, initialize the help service by calling the `New` function. The `New` function accepts an `Options` struct, which allows you to configure the documentation source.
+
+### Default `mkdocs` Source
+
+By default, the `help` module uses an embedded `mkdocs-material` site as the documentation source. To use the default source, pass an empty `Options` struct to the `New` function:
+
+```go
+helpService, err := help.New(help.Options{})
+if err != nil {
+    // Handle error
+}
+```
+
+### Custom Static Site Source
+
+You can also provide a custom directory containing a static website as the documentation source. To do this, set the `Source` field in the `Options` struct to the path of your static site directory:
+
+```go
+helpService, err := help.New(help.Options{
+    Source: "path/to/your/static/site",
+})
+if err != nil {
+    // Handle error
+}
+```
+
+Once the help service is initialized, you can use the `Show()` and `ShowAt()` methods to display the documentation.
