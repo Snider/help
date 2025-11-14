@@ -38,7 +38,7 @@ type MockDisplay struct{}
 // This example demonstrates how to use the Show() function in the refactored help module.
 func main() {
 	// 1. Initialize the help service.
-	helpService, err := help.New()
+	helpService, err := help.New(help.Options{})
 	if err != nil {
 		log.Fatalf("Failed to create help service: %v", err)
 	}

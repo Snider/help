@@ -4,6 +4,8 @@ import (
 	"context"
 	"embed"
 	"fmt"
+	"io/fs"
+	"os"
 )
 
 //go:embed all:public/*
@@ -39,20 +41,38 @@ type Help interface {
 }
 
 // Options holds configuration for the help service.
-type Options struct{}
+type Options struct {
+	Source string
+}
 
 // Service manages the in-app help system.
 type Service struct {
 	core    Core
 	display Display
-	assets  embed.FS
+	assets  fs.FS
+	opts    Options
 }
 
 // New is the constructor for the help service.
-func New() (*Service, error) {
-	return &Service{
-		assets: helpStatic,
-	}, nil
+func New(opts Options) (*Service, error) {
+	if opts.Source == "" {
+		opts.Source = "mkdocs"
+	}
+
+	s := &Service{
+		opts: opts,
+	}
+
+	var err error
+	if s.opts.Source != "mkdocs" {
+		s.assets = os.DirFS(s.opts.Source)
+	} else {
+		s.assets, err = fs.Sub(helpStatic, "public")
+		if err != nil {
+			return nil, err
+		}
+	}
+	return s, nil
 }
 
 // Init initializes the service with its core dependencies.
@@ -99,6 +119,12 @@ func (s *Service) ShowAt(anchor string) error {
 	if s.core == nil {
 		return fmt.Errorf("core runtime not initialized")
 	}
+
+	url := fmt.Sprintf("/%s", anchor)
+	if s.opts.Source == "mkdocs" {
+		url = fmt.Sprintf("/#%s", anchor)
+	}
+
 	msg := map[string]any{
 		"action": "display.open_window",
 		"name":   "help",
@@ -106,7 +132,7 @@ func (s *Service) ShowAt(anchor string) error {
 			"Title":  "Help",
 			"Width":  800,
 			"Height": 600,
-			"URL":    fmt.Sprintf("/#%s", anchor),
+			"URL":    url,
 		},
 	}
 	return s.core.ACTION(msg)

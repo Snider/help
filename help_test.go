@@ -42,8 +42,8 @@ func (m *MockCore) App() App { return m.app }
 // MockDisplay is a mock implementation of the Display interface.
 type MockDisplay struct{}
 
-func setupService(t *testing.T) (*Service, *MockCore, *MockDisplay) {
-	s, err := New()
+func setupService(t *testing.T, opts Options) (*Service, *MockCore, *MockDisplay) {
+	s, err := New(opts)
 	assert.NoError(t, err)
 
 	mockLogger := &MockLogger{}
@@ -57,19 +57,19 @@ func setupService(t *testing.T) (*Service, *MockCore, *MockDisplay) {
 }
 
 func TestNew(t *testing.T) {
-	s, err := New()
+	s, err := New(Options{})
 	assert.NoError(t, err)
 	assert.NotNil(t, s)
 }
 
 func TestServiceStartup(t *testing.T) {
-	s, _, _ := setupService(t)
+	s, _, _ := setupService(t, Options{})
 	err := s.ServiceStartup(context.Background())
 	assert.NoError(t, err)
 }
 
 func TestShow(t *testing.T) {
-	s, mockCore, _ := setupService(t)
+	s, mockCore, _ := setupService(t, Options{})
 
 	err := s.Show()
 	assert.NoError(t, err)
@@ -81,7 +81,7 @@ func TestShow(t *testing.T) {
 }
 
 func TestShowAt(t *testing.T) {
-	s, mockCore, _ := setupService(t)
+	s, mockCore, _ := setupService(t, Options{})
 
 	err := s.ShowAt("test-anchor")
 	assert.NoError(t, err)
@@ -96,8 +96,24 @@ func TestShowAt(t *testing.T) {
 	assert.Equal(t, "/#test-anchor", opts["URL"])
 }
 
+func TestShowAt_CustomSource(t *testing.T) {
+	s, mockCore, _ := setupService(t, Options{Source: "custom"})
+
+	err := s.ShowAt("test-anchor")
+	assert.NoError(t, err)
+	assert.True(t, mockCore.ActionCalled)
+
+	msg := mockCore.ActionMsg
+	assert.Equal(t, "display.open_window", msg["action"])
+	assert.Equal(t, "help", msg["name"])
+
+	opts, ok := msg["options"].(map[string]any)
+	assert.True(t, ok)
+	assert.Equal(t, "/test-anchor", opts["URL"])
+}
+
 func TestServiceStartup_CoreNotInitialized(t *testing.T) {
-	s, _, _ := setupService(t)
+	s, _, _ := setupService(t, Options{})
 	s.core = nil
 	err := s.ServiceStartup(context.Background())
 	assert.Error(t, err)
@@ -105,7 +121,7 @@ func TestServiceStartup_CoreNotInitialized(t *testing.T) {
 }
 
 func TestGood_ShowAndShowAt_DispatchesCorrectPayload(t *testing.T) {
-	s, mockCore, _ := setupService(t)
+	s, mockCore, _ := setupService(t, Options{})
 
 	// Test Show()
 	err := s.Show()
@@ -145,7 +161,7 @@ func TestGood_ShowAndShowAt_DispatchesCorrectPayload(t *testing.T) {
 }
 
 func TestBad_ShowAt_EmptyAnchor(t *testing.T) {
-	s, mockCore, _ := setupService(t)
+	s, mockCore, _ := setupService(t, Options{})
 
 	err := s.ShowAt("")
 	assert.NoError(t, err)
@@ -158,7 +174,7 @@ func TestBad_ShowAt_EmptyAnchor(t *testing.T) {
 }
 
 func TestUgly_ActionError_Propagates(t *testing.T) {
-	s, mockCore, _ := setupService(t)
+	s, mockCore, _ := setupService(t, Options{})
 
 	// Simulate an error from the core.ACTION method
 	expectedErr := assert.AnError
@@ -176,7 +192,7 @@ func TestUgly_ActionError_Propagates(t *testing.T) {
 }
 
 func TestShow_DisplayNotInitialized(t *testing.T) {
-	s, _, _ := setupService(t)
+	s, _, _ := setupService(t, Options{})
 	s.display = nil
 	err := s.Show()
 	assert.Error(t, err)
@@ -184,7 +200,7 @@ func TestShow_DisplayNotInitialized(t *testing.T) {
 }
 
 func TestShow_CoreNotInitialized(t *testing.T) {
-	s, _, _ := setupService(t)
+	s, _, _ := setupService(t, Options{})
 	s.core = nil
 	err := s.Show()
 	assert.Error(t, err)
@@ -192,7 +208,7 @@ func TestShow_CoreNotInitialized(t *testing.T) {
 }
 
 func TestShowAt_DisplayNotInitialized(t *testing.T) {
-	s, _, _ := setupService(t)
+	s, _, _ := setupService(t, Options{})
 	s.display = nil
 	err := s.ShowAt("some-anchor")
 	assert.Error(t, err)
@@ -200,7 +216,7 @@ func TestShowAt_DisplayNotInitialized(t *testing.T) {
 }
 
 func TestShowAt_CoreNotInitialized(t *testing.T) {
-	s, _, _ := setupService(t)
+	s, _, _ := setupService(t, Options{})
 	s.core = nil
 	err := s.ShowAt("some-anchor")
 	assert.Error(t, err)
