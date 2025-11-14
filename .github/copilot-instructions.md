@@ -1,41 +1,61 @@
-# Copilot Instructions for Core Element Template
+# Copilot Instructions for Help Module
 
 ## Project Overview
 
-This repository is a template for creating custom HTML elements for the core web3 framework. It consists of two main components:
+This repository contains the `help` module, which was formerly part of the `Snider/Core` framework. The module provides assistance and documentation functionality for applications, allowing them to embed and display help documentation.
 
-1. **Go Backend (CLI)**: A command-line interface built with Go and Cobra framework
-2. **Angular Frontend**: A custom HTML element built with Angular Elements
+The project consists of three main components:
+
+1. **Go Library**: A Go module that provides a help service for displaying documentation
+2. **Documentation**: MkDocs-based documentation that can be embedded in applications
+3. **Angular UI Component**: A custom HTML element built with Angular Elements for the help interface
 
 ## Technology Stack
 
-- **Backend**: Go 1.24.3 with Cobra CLI framework
-- **Frontend**: Angular 20.3+ with Angular Elements
-- **Build Tools**: GoReleaser for Go builds, Angular CLI for frontend builds
-- **Package Management**: Go modules for Go, npm for Node.js/Angular
+- **Go Library**: Go 1.25 with embedded file systems
+- **Documentation**: MkDocs Material theme with Python
+- **UI Component**: Angular 20.3+ with Angular Elements
+- **Build Tools**: 
+  - GoReleaser for Go library releases
+  - Angular CLI for UI builds
+  - Task (Taskfile) for documentation builds
+- **Package Management**: 
+  - Go modules for Go dependencies
+  - pip for Python/MkDocs dependencies
+  - npm for Node.js/Angular dependencies
 
 ## Project Structure
 
 ```
 .
-├── cmd/demo-cli/          # Go CLI application
-│   ├── cmd/               # Cobra command implementations
-│   └── main.go            # Application entry point
-├── ui/                    # Angular custom element
+├── help.go                # Main Go library implementation
+├── help_test.go           # Go tests
+├── go.mod                 # Go module definition
+├── examples/              # Example applications
+│   ├── show_help/         # Example: showing help
+│   └── show_at/           # Example: showing help at specific anchor
+├── src/                   # MkDocs documentation source
+│   ├── index.md           # Main documentation page
+│   ├── images/            # Documentation images
+│   └── stylesheets/       # Custom CSS
+├── public/                # Built documentation (embedded in Go binary)
+├── ui/                    # Angular help UI component
 │   ├── src/               # Angular source code
 │   ├── public/            # Static assets
 │   └── package.json       # Node.js dependencies
-├── .github/               # GitHub configurations and workflows
-└── .goreleaser.yaml       # Release configuration
+├── mkdocs.yml             # MkDocs configuration
+├── taskfile.dist.yml      # Task runner configuration
+└── .github/               # GitHub workflows and configurations
 ```
 
 ## Development Setup
 
 ### Prerequisites
 
-- Go 1.24.3 or later
+- Go 1.25 or later
+- Python 3 with pip
 - Node.js and npm
-- Git
+- Task (task runner) - optional but recommended
 
 ### Initial Setup
 
@@ -44,51 +64,68 @@ This repository is a template for creating custom HTML elements for the core web
    go mod tidy
    ```
 
-2. Install Node.js dependencies:
+2. Install documentation dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. Install UI dependencies (if working on the Angular component):
    ```bash
    cd ui
    npm install
    ```
 
-### Running the Application
+### Running the Documentation Server
 
-Start the development server:
+Using Task (recommended):
 ```bash
-go run ./cmd/demo-cli serve
+task dev
 ```
 
-This starts the Go backend and serves the Angular custom element.
+Or using MkDocs directly:
+```bash
+mkdocs serve
+```
+
+This starts a live-reloading development server for the documentation at `http://localhost:8000`.
 
 ## Building
 
-### Build Go CLI
+### Build Documentation
 
-The Go CLI is built using GoReleaser in the release workflow. For local development:
+The documentation is built into the `public` directory and embedded in the Go binary:
+
 ```bash
-go build -o demo-cli ./cmd/demo-cli
+task build
+# or
+mkdocs build --clean -d public
 ```
 
-### Build Angular Custom Element
+### Build UI Component
 
 ```bash
 cd ui
 npm run build
 ```
 
-This creates a single JavaScript file in the `dist` directory for use in any HTML page.
+This creates the Angular custom element in the `dist` directory.
 
 ## Testing
 
 ### Go Tests
 
-Run Go tests:
+Run all Go tests with coverage:
 ```bash
-go test ./...
+go test -v -coverprofile=coverage.out ./...
 ```
 
-Note: Currently, there are no test files in the Go codebase.
+The test suite includes:
+- Service initialization tests
+- Display functionality tests
+- Error handling tests
+- Custom source and asset loading tests
 
-### Angular Tests
+### UI Tests
 
 Run Angular tests:
 ```bash
@@ -100,10 +137,20 @@ npm test
 
 ### Go Code
 
-- Follow standard Go conventions and formatting (use `gofmt`)
+- Follow standard Go conventions and formatting (use `gofmt` or `go fmt`)
 - Use meaningful variable and function names
 - Keep functions focused and single-purpose
-- Use Cobra framework patterns for CLI commands
+- Follow the existing patterns for interfaces (Logger, App, Core, Display, Help)
+- Use context.Context for service lifecycle management
+- Embed static assets using `//go:embed` directives
+
+### Documentation (Markdown)
+
+- Follow MkDocs Material conventions
+- Use clear, concise language
+- Include code examples where appropriate
+- Keep line length reasonable for readability
+- Use proper heading hierarchy
 
 ### Angular/TypeScript Code
 
@@ -121,25 +168,81 @@ npm test
 - Keep commits atomic and well-described
 - Follow the existing code patterns in the repository
 
+## API Overview
+
+### Main Interfaces
+
+- **Help**: Main interface for the help service with `Show()`, `ShowAt(anchor string)`, and `ServiceStartup(ctx context.Context)` methods
+- **Core**: Application core interface providing ACTION dispatch and App access
+- **App**: Application interface providing Logger access
+- **Logger**: Logging interface with Info and Error methods
+- **Display**: Marker interface for display service dependency checking
+
+### Options
+
+The `Options` struct allows configuration:
+- `Source`: Path to custom static site directory
+- `Assets`: Custom `fs.FS` for documentation assets (can be `embed.FS` or any `fs.FS` implementation)
+
+### Usage Pattern
+
+```go
+// Initialize with default embedded documentation
+helpService, err := help.New(help.Options{})
+
+// Or with custom embedded assets
+helpService, err := help.New(help.Options{
+    Assets: myDocs,
+})
+
+// Or with custom directory source
+helpService, err := help.New(help.Options{
+    Source: "path/to/docs",
+})
+
+// Start the service
+err = helpService.ServiceStartup(ctx)
+
+// Show help
+err = helpService.Show()
+
+// Show help at specific location
+err = helpService.ShowAt("ui/how/settings#resetPassword")
+```
+
 ## Important Notes for AI Assistants
 
 1. **Minimal Changes**: Make the smallest possible changes to achieve the goal
 2. **No Breaking Changes**: Don't modify working code unless necessary
-3. **Testing**: Run tests before and after changes to ensure nothing breaks
-4. **Build Verification**: Always verify builds succeed after making changes
-5. **Dependencies**: Check for security vulnerabilities before adding new dependencies
-6. **Module Names**: Note that the Go module name uses a placeholder `github.com/your-username/core-element-template` which should be updated when forking
+3. **Testing**: Always run `go test ./...` before and after changes to ensure nothing breaks
+4. **Build Verification**: Ensure `go build` succeeds after making changes
+5. **Dependencies**: Check for security vulnerabilities before adding new dependencies using `govulncheck` or similar security scanning tools
+6. **Module Name**: The Go module is `github.com/Snider/help` - do not change this
+7. **Embedded Assets**: The `public` directory is embedded in the Go binary via `//go:embed all:public/*`
+8. **Documentation**: When changing documentation, rebuild with `task build` or `mkdocs build`
 
-## Workflows
+## CI/CD Workflows
 
-- **Release**: Automated release workflow using GoReleaser (`.github/workflows/release.yml`)
+- **Go CI** (`.github/workflows/go.yml`): Runs tests and uploads coverage on push/PR to main
+- **Release** (`.github/workflows/release.yml`): Uses GoReleaser to build and publish releases
 
 ## Contributing
 
 When contributing to this repository:
 
-1. Ensure all tests pass
-2. Follow the existing code style
-3. Keep changes minimal and focused
-4. Update documentation if needed
-5. Test the build locally before submitting
+1. Run tests before making changes: `go test ./...`
+2. Make minimal, focused changes
+3. Run tests after changes to verify nothing broke
+4. Follow the existing code style
+5. Update documentation if the API changes
+6. Ensure all CI checks pass
+7. Keep commits atomic with clear messages
+
+## Common Tasks
+
+- **Run tests**: `go test -v ./...`
+- **Run tests with coverage**: `go test -v -coverprofile=coverage.out ./...`
+- **Build documentation**: `task build` or `mkdocs build --clean -d public`
+- **Serve documentation**: `task dev` or `mkdocs serve`
+- **Format Go code**: `go fmt ./...`
+- **Tidy dependencies**: `go mod tidy`
