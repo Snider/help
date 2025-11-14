@@ -216,7 +216,7 @@ err = helpService.ShowAt("ui/how/settings#resetPassword")
 2. **No Breaking Changes**: Don't modify working code unless necessary
 3. **Testing**: Always run `go test ./...` before and after changes to ensure nothing breaks
 4. **Build Verification**: Ensure `go build` succeeds after making changes
-5. **Dependencies**: Check for security vulnerabilities before adding new dependencies using the `gh-advisory-database` tool
+5. **Dependencies**: Check for security vulnerabilities before adding new dependencies using `govulncheck` or similar security scanning tools
 6. **Module Name**: The Go module is `github.com/Snider/help` - do not change this
 7. **Embedded Assets**: The `public` directory is embedded in the Go binary via `//go:embed all:public/*`
 8. **Documentation**: When changing documentation, rebuild with `task build` or `mkdocs build`
