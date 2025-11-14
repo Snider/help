@@ -97,11 +97,18 @@ func (s *Service) ServiceStartup(context.Context) error {
 
 // Show displays the help window.
 func (s *Service) Show() error {
+	// Check core first for consistent behavior in both normal and fallback paths
+	if s.core == nil {
+		return fmt.Errorf("core runtime not initialized")
+	}
+
 	if s.display == nil {
 		app := application.Get()
 		if app == nil {
 			return fmt.Errorf("wails application not running")
 		}
+		// Note: The Wails application must be configured to serve the help assets
+		// from the root path ("/") for this fallback to work correctly.
 		app.Window.NewWithOptions(application.WebviewWindowOptions{
 			Title:  "Help",
 			Width:  800,
@@ -109,9 +116,6 @@ func (s *Service) Show() error {
 			URL:    "/",
 		})
 		return nil
-	}
-	if s.core == nil {
-		return fmt.Errorf("core runtime not initialized")
 	}
 	msg := map[string]any{
 		"action": "display.open_window",
@@ -128,11 +132,18 @@ func (s *Service) Show() error {
 
 // ShowAt displays a specific section of the help documentation.
 func (s *Service) ShowAt(anchor string) error {
+	// Check core first for consistent behavior in both normal and fallback paths
+	if s.core == nil {
+		return fmt.Errorf("core runtime not initialized")
+	}
+
 	if s.display == nil {
 		app := application.Get()
 		if app == nil {
 			return fmt.Errorf("wails application not running")
 		}
+		// Note: The Wails application must be configured to serve the help assets
+		// from the root path for this fallback to work correctly.
 		url := fmt.Sprintf("/#%s", anchor)
 		app.Window.NewWithOptions(application.WebviewWindowOptions{
 			Title:  "Help",
@@ -141,9 +152,6 @@ func (s *Service) ShowAt(anchor string) error {
 			URL:    url,
 		})
 		return nil
-	}
-	if s.core == nil {
-		return fmt.Errorf("core runtime not initialized")
 	}
 
 	url := fmt.Sprintf("/#%s", anchor)

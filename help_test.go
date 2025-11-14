@@ -207,6 +207,8 @@ func TestShow_DisplayNotInitialized(t *testing.T) {
 	s.display = nil
 	err := s.Show()
 	assert.Error(t, err)
+	// Note: With core still initialized, we expect "wails application not running"
+	// because core check passes but application.Get() returns nil in tests
 	assert.Equal(t, "wails application not running", err.Error())
 }
 
@@ -223,6 +225,8 @@ func TestShowAt_DisplayNotInitialized(t *testing.T) {
 	s.display = nil
 	err := s.ShowAt("some-anchor")
 	assert.Error(t, err)
+	// Note: With core still initialized, we expect "wails application not running"
+	// because core check passes but application.Get() returns nil in tests
 	assert.Equal(t, "wails application not running", err.Error())
 }
 

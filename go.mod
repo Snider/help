@@ -4,6 +4,9 @@ go 1.25
 
 require (
 	github.com/stretchr/testify v1.11.1
+	// WARNING: wails v3 is currently in alpha and may introduce breaking changes.
+	// This dependency is used for the fallback mechanism when the display service
+	// is not available. Consider upgrading to a stable release when available.
 	github.com/wailsapp/wails/v3 v3.0.0-alpha.40
 )
 
