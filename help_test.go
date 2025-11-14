@@ -120,7 +120,7 @@ func TestShowAt_CustomSource(t *testing.T) {
 
 	opts, ok := msg["options"].(map[string]any)
 	assert.True(t, ok)
-	assert.Equal(t, "/test-anchor", opts["URL"])
+	assert.Equal(t, "/#test-anchor", opts["URL"])
 }
 
 func TestServiceStartup_CoreNotInitialized(t *testing.T) {
@@ -207,7 +207,7 @@ func TestShow_DisplayNotInitialized(t *testing.T) {
 	s.display = nil
 	err := s.Show()
 	assert.Error(t, err)
-	assert.Equal(t, "display service not initialized", err.Error())
+	assert.Equal(t, "wails application not running", err.Error())
 }
 
 func TestShow_CoreNotInitialized(t *testing.T) {
@@ -223,7 +223,7 @@ func TestShowAt_DisplayNotInitialized(t *testing.T) {
 	s.display = nil
 	err := s.ShowAt("some-anchor")
 	assert.Error(t, err)
-	assert.Equal(t, "display service not initialized", err.Error())
+	assert.Equal(t, "wails application not running", err.Error())
 }
 
 func TestShowAt_CoreNotInitialized(t *testing.T) {
