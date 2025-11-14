@@ -172,7 +172,7 @@ npm test
 
 ### Main Interfaces
 
-- **Help**: Main interface for the help service with `Show()` and `ShowAt(anchor string)` methods
+- **Help**: Main interface for the help service with `Show()`, `ShowAt(anchor string)`, and `ServiceStartup(ctx context.Context)` methods
 - **Core**: Application core interface providing ACTION dispatch and App access
 - **App**: Application interface providing Logger access
 - **Logger**: Logging interface with Info and Error methods
