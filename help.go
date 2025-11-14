@@ -98,6 +98,9 @@ func (s *Service) ServiceStartup(context.Context) error {
 // Show displays the help window.
 func (s *Service) Show() error {
 	if s.display == nil {
+		if s.core == nil {
+			return fmt.Errorf("core runtime not initialized")
+		}
 		app := application.Get()
 		if app == nil {
 			return fmt.Errorf("wails application not running")
@@ -129,6 +132,9 @@ func (s *Service) Show() error {
 // ShowAt displays a specific section of the help documentation.
 func (s *Service) ShowAt(anchor string) error {
 	if s.display == nil {
+		if s.core == nil {
+			return fmt.Errorf("core runtime not initialized")
+		}
 		app := application.Get()
 		if app == nil {
 			return fmt.Errorf("wails application not running")
