@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+
+	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 //go:embed all:public/*
@@ -96,7 +98,17 @@ func (s *Service) ServiceStartup(context.Context) error {
 // Show displays the help window.
 func (s *Service) Show() error {
 	if s.display == nil {
-		return fmt.Errorf("display service not initialized")
+		app := application.Get()
+		if app == nil {
+			return fmt.Errorf("wails application not running")
+		}
+		app.Window.NewWithOptions(application.WebviewWindowOptions{
+			Title:  "Help",
+			Width:  800,
+			Height: 600,
+			URL:    "/",
+		})
+		return nil
 	}
 	if s.core == nil {
 		return fmt.Errorf("core runtime not initialized")
@@ -117,16 +129,24 @@ func (s *Service) Show() error {
 // ShowAt displays a specific section of the help documentation.
 func (s *Service) ShowAt(anchor string) error {
 	if s.display == nil {
-		return fmt.Errorf("display service not initialized")
+		app := application.Get()
+		if app == nil {
+			return fmt.Errorf("wails application not running")
+		}
+		url := fmt.Sprintf("/#%s", anchor)
+		app.Window.NewWithOptions(application.WebviewWindowOptions{
+			Title:  "Help",
+			Width:  800,
+			Height: 600,
+			URL:    url,
+		})
+		return nil
 	}
 	if s.core == nil {
 		return fmt.Errorf("core runtime not initialized")
 	}
 
-	url := fmt.Sprintf("/%s", anchor)
-	if s.opts.Source == "mkdocs" {
-		url = fmt.Sprintf("/#%s", anchor)
-	}
+	url := fmt.Sprintf("/#%s", anchor)
 
 	msg := map[string]any{
 		"action": "display.open_window",
