@@ -43,6 +43,7 @@ type Help interface {
 // Options holds configuration for the help service.
 type Options struct {
 	Source string
+	Assets fs.FS
 }
 
 // Service manages the in-app help system.
@@ -64,7 +65,9 @@ func New(opts Options) (*Service, error) {
 	}
 
 	var err error
-	if s.opts.Source != "mkdocs" {
+	if opts.Assets != nil {
+		s.assets = opts.Assets
+	} else if s.opts.Source != "mkdocs" {
 		s.assets = os.DirFS(s.opts.Source)
 	} else {
 		s.assets, err = fs.Sub(helpStatic, "public")

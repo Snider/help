@@ -2,6 +2,7 @@ package help
 
 import (
 	"context"
+	"embed"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -42,6 +43,9 @@ func (m *MockCore) App() App { return m.app }
 // MockDisplay is a mock implementation of the Display interface.
 type MockDisplay struct{}
 
+//go:embed all:public/*
+var testAssets embed.FS
+
 func setupService(t *testing.T, opts Options) (*Service, *MockCore, *MockDisplay) {
 	s, err := New(opts)
 	assert.NoError(t, err)
@@ -60,6 +64,13 @@ func TestNew(t *testing.T) {
 	s, err := New(Options{})
 	assert.NoError(t, err)
 	assert.NotNil(t, s)
+}
+
+func TestNew_WithAssets(t *testing.T) {
+	s, err := New(Options{Assets: testAssets})
+	assert.NoError(t, err)
+	assert.NotNil(t, s)
+	assert.Equal(t, testAssets, s.assets)
 }
 
 func TestServiceStartup(t *testing.T) {
