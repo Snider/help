@@ -182,7 +182,7 @@ npm test
 
 The `Options` struct allows configuration:
 - `Source`: Path to custom static site directory
-- `Assets`: Custom `embed.FS` for documentation assets
+- `Assets`: Custom `fs.FS` for documentation assets (can be `embed.FS` or any `fs.FS` implementation)
 
 ### Usage Pattern
 
