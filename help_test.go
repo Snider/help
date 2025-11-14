@@ -3,6 +3,7 @@ package help
 import (
 	"context"
 	"embed"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -129,6 +130,54 @@ func TestServiceStartup_CoreNotInitialized(t *testing.T) {
 	err := s.ServiceStartup(context.Background())
 	assert.Error(t, err)
 	assert.Equal(t, "core runtime not initialized", err.Error())
+}
+
+func ExampleNew() {
+	// Create a new help service with default options.
+	// This demonstrates the simplest way to create a new service.
+	// The service will use the default embedded "mkdocs" content.
+	s, err := New(Options{})
+	if err != nil {
+		fmt.Printf("Error creating new service: %v", err)
+		return
+	}
+	if s != nil {
+		fmt.Println("Help service created successfully.")
+	}
+
+	// Output: Help service created successfully.
+}
+
+func ExampleService_Show() {
+	// Create a new service and initialize it with mock dependencies.
+	s, _ := New(Options{})
+	s.Init(&MockCore{}, &MockDisplay{})
+
+	// Call the Show method. In a real application, this would open a help window.
+	// Since we are using a mock core, it will just record the action.
+	if err := s.Show(); err != nil {
+		fmt.Printf("Error showing help: %v", err)
+	} else {
+		fmt.Println("Show method called.")
+	}
+
+	// Output: Show method called.
+}
+
+func ExampleService_ShowAt() {
+	// Create a new service and initialize it with mock dependencies.
+	s, _ := New(Options{})
+	s.Init(&MockCore{}, &MockDisplay{})
+
+	// Call the ShowAt method. In a real application, this would open a help
+	// window at a specific anchor.
+	if err := s.ShowAt("getting-started"); err != nil {
+		fmt.Printf("Error showing help at anchor: %v", err)
+	} else {
+		fmt.Println("ShowAt method called for 'getting-started'.")
+	}
+
+	// Output: ShowAt method called for 'getting-started'.
 }
 
 func TestGood_ShowAndShowAt_DispatchesCorrectPayload(t *testing.T) {
