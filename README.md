@@ -32,14 +32,27 @@ import "github.com/Snider/help"
 
 Next, initialize the help service by calling the `New` function. The `New` function accepts an `Options` struct, which allows you to configure the documentation source.
 
-### Default `mkdocs` Source
+### Using a custom `embed.FS`
 
-By default, the `help` module uses an embedded `mkdocs-material` site as the documentation source. To use the default source, pass an empty `Options` struct to the `New` function:
+You can provide your own `embed.FS` as a documentation source. This is useful when you want to bundle the documentation with your application.
 
 ```go
-helpService, err := help.New(help.Options{})
-if err != nil {
-    // Handle error
+import (
+    "embed"
+    "github.com/Snider/help"
+)
+
+//go:embed all:my-docs/build
+var myDocs embed.FS
+
+func main() {
+    helpService, err := help.New(help.Options{
+        Assets: myDocs,
+    })
+    if err != nil {
+        // Handle error
+    }
+    // ...
 }
 ```
 
